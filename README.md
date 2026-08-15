@@ -28,8 +28,19 @@ Notionは画面機能ではなくバックエンドコネクタ。原文は`sour
 - `npm run db:migrate`: migration適用
 - `npm run db:seed`: 完全合成データへリセット
 - `npm run db:verify`: 原本・関係・情報領域を検証
+- `npm run sync:notion -- --limit 1`: Notionの更新記録を1件取得し、OrcaRouterで抽出して知識テーブルへ保存
 - `npm run logs`: AI処理ログを読む
 - `npm run probe -- billing`: OrcaRouterの課金累計を確認（単位はセント）
+
+### Notionから手動同期する
+
+```bash
+npm run sync:notion -- --limit 1
+```
+
+提出済みのNotion営業記録から、原文の新規・更新分だけを`source_documents`へ保存し、OrcaRouterで人物・事実・関係と原文根拠を抽出する。検証済みの結果は`knowledge_entities / knowledge_claims / knowledge_relations / evidence_links`へ保存する。API課金を意図せず増やさないよう、既定の処理上限は1件。
+
+原文保存後にAI処理が失敗した場合は、原因を直してから`--force`を付けて再実行する。未処理候補が残っている場合は、通常のコマンドを繰り返す。
 
 ## 環境変数
 

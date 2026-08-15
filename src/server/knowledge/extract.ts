@@ -28,7 +28,9 @@ const extractionSchema = z.object({
       predicate: z.string(),
       valueText: z.string(),
       evidenceQuote: z.string(),
-      confidence: z.number().min(0).max(1),
+      // OrcaRouterの構造化出力はJSON Schemaのminimum/maximumを受け付けない。
+      // 範囲は生成後にコードで補正する。
+      confidence: z.number(),
     }),
   ),
   relations: z.array(
@@ -38,7 +40,7 @@ const extractionSchema = z.object({
       relationType: z.string(),
       label: z.string(),
       evidenceQuote: z.string(),
-      confidence: z.number().min(0).max(1),
+      confidence: z.number(),
     }),
   ),
 });
@@ -53,8 +55,12 @@ export async function extractKnowledge(input: Parameters<typeof knowledgeExtract
   });
   const safe = {
     ...result.object,
-    claims: result.object.claims.filter((item) => input.rawText.includes(item.evidenceQuote)),
-    relations: result.object.relations.filter((item) => input.rawText.includes(item.evidenceQuote)),
+    claims: result.object.claims
+      .filter((item) => input.rawText.includes(item.evidenceQuote))
+      .map((item) => ({ ...item, confidence: Math.max(0, Math.min(1, item.confidence)) })),
+    relations: result.object.relations
+      .filter((item) => input.rawText.includes(item.evidenceQuote))
+      .map((item) => ({ ...item, confidence: Math.max(0, Math.min(1, item.confidence)) })),
   };
   await logTurn({
     kind: "knowledge",

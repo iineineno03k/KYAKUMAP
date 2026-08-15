@@ -18,7 +18,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts",
-    "db:verify": "tsx src/db/verify-seed.ts"
+    "db:verify": "tsx src/db/verify-seed.ts",
+    "sync:notion": "NODE_OPTIONS=--conditions=react-server tsx scripts/sync-notion-knowledge.mts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.37",
@@ -33,6 +34,7 @@
     "postgres": "^3.4.9",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
     "shadcn": "^4.16.2",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.6.0",

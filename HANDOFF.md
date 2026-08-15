@@ -32,6 +32,14 @@ KYAKUMAPは、社内に散らばる記録を顧客・関係者・判断材料へ
 4. `POST /api/customers/:customerId/chat`: 顧客近傍を取得し、OrcaRouterで人物らしい回答を構造化生成
 5. `POST /api/speech`: 回答を人物設定の声で読み上げる
 
+Notionの取り込みは手動CLIで一気通貫に実行できる。
+
+```bash
+npm run sync:notion -- --limit 1
+```
+
+更新された原文を`source_documents`へ保存し、OrcaRouterで人物・事実・関係を抽出した後、根拠引用の原文一致を検証して`knowledge_* / evidence_links`へ保存する。既定はAPI課金を抑えるため1件。原文保存後の失敗を再処理するときは`--force`を付ける。
+
 各情報領域は`panel_item_definitions`の5小項目へ分かれ、顧客別状態は`customer_panel_items`に持つ。領域別と全体の情報充足度は小項目の重み付き充足率。佐藤カードは15/25で全体60%、内訳は基本情報100%、課題80%、キーパーソン40%、意思決定40%、懸念40%。
 
 事実をLLMへ作らせない。LLMが返したevidenceId/entityIdはDB由来の許可リストで検証し、リンクURLはサーバーが生成する。根拠なしknown回答はunknownへ降格する。
@@ -40,6 +48,9 @@ KYAKUMAPは、社内に散らばる記録を顧客・関係者・判断材料へ
 
 - `src/server/customer-ai/context.ts`: 顧客近傍・根拠・情報保持者候補の取得
 - `src/app/api/customers/[customerId]/chat/route.ts`: OrcaRouterと出力検証
+- `src/server/ingestion/sync-notion.ts`: Notion原文同期から知識抽出・保存までのオーケストレーション
+- `src/server/knowledge/persist-extraction.ts`: AI抽出結果の冪等保存と古い抽出結果の置換
+- `scripts/sync-notion-knowledge.mts`: 手動同期CLI
 - `src/app/(workspace)/customers/[customerId]/_components/customer-ai-chat.tsx`: 音声・テキストUI
 - `src/lib/prompts.ts`, `../docs/prompts.md`: プロンプトSSoT
 - `src/lib/browser-speech.ts`, `src/app/api/speech/route.ts`: 音声入出力
