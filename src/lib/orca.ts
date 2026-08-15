@@ -27,7 +27,7 @@ export const orca = createOpenAI({
 
 export const MODELS = {
   /** 原文からエンティティ・事実・関係候補を一度で抽出する。 */
-  knowledge: env("ORCAROUTER_KNOWLEDGE_MODEL") ?? "anthropic/claude-haiku-4.5",
+  knowledge: env("ORCAROUTER_KNOWLEDGE_MODEL") ?? "orcarouter/auto",
   /** 根拠付き知識を、顧客本人らしい一人称へ変換する。 */
   customerChat: env("ORCAROUTER_CUSTOMER_CHAT_MODEL") ?? "orcarouter/auto",
   /** 顧客AIの返答を人物ごとの声で読み上げる。 */
