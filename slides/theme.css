@@ -1,0 +1,350 @@
+/* @theme kyakumap */
+
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700;800;900&display=swap");
+
+:root {
+  --ink: #1e1b4b;
+  --paper: #fffdf7;
+  --coral: #fb7185;
+  --yellow: #fde047;
+  --green: #34d399;
+  --muted: #6b6a7e;
+}
+
+section {
+  box-sizing: border-box;
+  width: 1280px;
+  height: 720px;
+  padding: 58px 76px;
+  background:
+    radial-gradient(circle at 91% 12%, rgb(253 224 71 / 32%) 0 6px, transparent 7px),
+    linear-gradient(135deg, #fffdf7 0%, #fffdf7 76%, #fff7ed 100%);
+  color: var(--ink);
+  font-family: "Noto Sans JP", sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+section::after {
+  position: absolute;
+  right: 48px;
+  bottom: 30px;
+  color: rgb(30 27 75 / 28%);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  content: "KYAKUMAP";
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 68px;
+  font-weight: 900;
+  line-height: 1.24;
+  letter-spacing: -0.045em;
+}
+
+h2 {
+  margin-bottom: 42px;
+  font-size: 42px;
+  font-weight: 900;
+  line-height: 1.35;
+  letter-spacing: -0.035em;
+}
+
+h2 strong,
+h1 span,
+section.closing h2 span {
+  box-shadow: inset 0 -0.32em 0 rgb(251 113 133 / 48%);
+}
+
+section.title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 104px;
+  background:
+    radial-gradient(circle at 83% 25%, var(--yellow) 0 48px, transparent 49px),
+    radial-gradient(circle at 87% 69%, var(--coral) 0 78px, transparent 79px),
+    linear-gradient(145deg, var(--paper) 0 69%, #ecfdf5 69% 100%);
+}
+
+section.title::after,
+section.demo::after,
+section.handoff::after,
+section.closing::after {
+  content: "";
+}
+
+section.title .brand {
+  margin-bottom: 28px;
+  color: var(--coral);
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+}
+
+section.title > p {
+  margin-top: 34px;
+  color: var(--muted);
+  font-size: 25px;
+}
+
+section.evidence h2 {
+  margin-bottom: 30px;
+}
+
+.periods {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 42px;
+}
+
+.periods > div:not(.divider) {
+  min-width: 350px;
+  text-align: center;
+}
+
+.periods small {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--muted);
+  font-size: 19px;
+}
+
+.periods strong {
+  font-size: 78px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.06em;
+}
+
+.periods em {
+  margin-left: 8px;
+  font-size: 27px;
+  font-style: normal;
+  letter-spacing: 0;
+}
+
+.periods .divider {
+  padding-bottom: 16px;
+  color: var(--coral);
+  font-size: 50px;
+}
+
+.causal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 40px;
+  font-size: 22px;
+}
+
+.causal b {
+  border-bottom: 5px solid var(--yellow);
+  padding-bottom: 4px;
+}
+
+.causal i {
+  color: var(--coral);
+  font-style: normal;
+}
+
+.source {
+  position: absolute;
+  bottom: 32px;
+  left: 76px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+section.handoff {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+section.handoff h2 {
+  margin: 0;
+  font-size: 54px;
+  line-height: 1.45;
+}
+
+section.handoff p {
+  margin-top: 48px;
+  border-bottom: 7px solid var(--yellow);
+  font-size: 28px;
+}
+
+section.demo {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: #0b1020;
+}
+
+section.demo video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.responsibilities {
+  display: grid;
+  grid-template-columns: 1fr 42px 1fr 42px 1fr;
+  align-items: center;
+  margin-top: 52px;
+}
+
+.responsibilities > div {
+  text-align: center;
+}
+
+.responsibilities small,
+.boundaries small {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--coral);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.responsibilities strong {
+  display: block;
+  font-size: 29px;
+  font-weight: 900;
+}
+
+.responsibilities p {
+  margin-top: 17px;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.responsibilities > i {
+  color: var(--coral);
+  font-size: 30px;
+  font-style: normal;
+  text-align: center;
+}
+
+.safety-line {
+  margin: 56px auto 0;
+  width: max-content;
+  border-bottom: 7px solid var(--yellow);
+  font-size: 23px;
+  font-weight: 900;
+}
+
+.boundaries {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 84px;
+  margin-top: 46px;
+}
+
+.boundaries section {
+  position: relative;
+  width: auto;
+  height: auto;
+  min-height: 290px;
+  padding: 28px 34px;
+  border-top: 7px solid var(--coral);
+  background: white;
+  box-shadow: 8px 8px 0 rgb(30 27 75 / 12%);
+}
+
+.boundaries section:nth-child(2) {
+  border-color: var(--green);
+}
+
+.boundaries section::after {
+  content: "";
+}
+
+.boundaries h3 {
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.boundaries ul {
+  margin: 24px 0 0;
+  padding-left: 1.15em;
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 2;
+}
+
+.bottom-claim {
+  margin-top: 42px;
+  text-align: center;
+  font-size: 25px;
+  font-weight: 900;
+}
+
+section.closing {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 100px;
+  background:
+    radial-gradient(circle at 89% 18%, var(--yellow) 0 55px, transparent 56px),
+    linear-gradient(145deg, var(--paper) 0 76%, #ecfdf5 76% 100%);
+}
+
+section.closing h2 {
+  margin-bottom: 34px;
+  font-size: 51px;
+  line-height: 1.45;
+}
+
+section.closing .target {
+  width: max-content;
+  border-left: 8px solid var(--coral);
+  padding: 6px 0 6px 18px;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+section.closing > p {
+  margin-top: 32px;
+  color: var(--muted);
+  font-size: 21px;
+  line-height: 1.8;
+}
+
+section.closing .closing-footer {
+  position: absolute;
+  right: 70px;
+  bottom: 42px;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+section.closing .closing-footer b {
+  color: var(--ink);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+@media print {
+  section {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
