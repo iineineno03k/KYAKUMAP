@@ -46,6 +46,8 @@ npm run sync:notion -- --limit 1
 
 記録AIの既定モデルは`orcarouter/auto`。Auto RouterはAnthropicを含む複数プロバイダへ解決され得るため、`generateObject`の`response_format`ではなく、プロバイダ横断で変換されるTool Callingを必須指定して構造化回答を受け取る。知識抽出は引き続き`anthropic/claude-haiku-4.5`固定。
 
+OrcaRouter側では`KYAKUMAP Security Guardrail`を現在のAPIキーへ明示的に紐付け済み。入力の連絡先等をマスクし、決済・本人確認情報と代表的なシークレットをブロックする。マッチ原文ログはOFF。設定内容と実測結果はREADME「実測した OrcaRouter の挙動」を参照。
+
 ## 重要ファイル
 
 - `src/server/customer-ai/context.ts`: 顧客近傍・根拠・情報保持者候補の取得
