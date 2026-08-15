@@ -81,6 +81,7 @@ export function CustomerAiChat({
   const [recording, setRecording] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [speaking, setSpeaking] = useState(false);
+  const [audioReplayReady, setAudioReplayReady] = useState(false);
   const latestUserTurn = [...turns].reverse().find((turn) => turn.role === "user") ?? null;
   const latestReply = [...turns].reverse().find((turn) => turn.role === "assistant") ?? null;
   const questions = [
@@ -100,6 +101,23 @@ export function CustomerAiChat({
     if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
     audioUrlRef.current = null;
     setSpeaking(false);
+    setAudioReplayReady(false);
+  };
+
+  const logAudioFailure = (phase: "autoplay" | "manual" | "decode", caught: unknown) => {
+    const reason = caught instanceof Error ? `${caught.name}: ${caught.message}` : String(caught);
+    void fetch("/api/client-events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event: "audio_playback_failed",
+        phase,
+        reason,
+        customerId,
+        sessionId: sessionId.current,
+      }),
+      keepalive: true,
+    }).catch(() => undefined);
   };
 
   const closeConversation = () => {
@@ -155,7 +173,8 @@ export function CustomerAiChat({
     });
     if (!response.ok) {
       revealOnce();
-      return;
+      const body = (await response.json().catch(() => null)) as { error?: string } | null;
+      throw new Error(body?.error ?? "音声を作れませんでした。回答は文字で表示しています。");
     }
     const url = URL.createObjectURL(await response.blob());
     const audio = new Audio(url);
@@ -175,12 +194,31 @@ export function CustomerAiChat({
     audio.onended = finish;
     audio.onerror = () => {
       revealOnce();
+      logAudioFailure("decode", "音声データを再生できませんでした");
+      setError("音声データを再生できませんでした。回答は文字で表示しています。");
       finish();
     };
-    await audio.play().catch(() => {
+    await audio.play().catch((caught: unknown) => {
       revealOnce();
-      finish();
+      logAudioFailure("autoplay", caught);
+      setSpeaking(false);
+      setAudioReplayReady(true);
+      setError("スマホの自動再生が止められました。「音声を再生」をタップしてください。");
     });
+  };
+
+  const playPreparedAudio = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    setError(null);
+    setAudioReplayReady(false);
+    try {
+      await audio.play();
+    } catch (caught) {
+      logAudioFailure("manual", caught);
+      setAudioReplayReady(true);
+      setError("音声を再生できませんでした。端末の音量とブラウザ設定を確認してください。");
+    }
   };
 
   const ask = async (question: string) => {
@@ -356,6 +394,17 @@ export function CustomerAiChat({
 
               {latestUserTurn && busy ? (
                 <p className="customer-talk-question">「{latestUserTurn.text}」</p>
+              ) : null}
+
+              {audioReplayReady && latestReply && !busy ? (
+                <button
+                  type="button"
+                  className="customer-talk-replay"
+                  onClick={() => void playPreparedAudio()}
+                >
+                  <Volume2 className="size-4" aria-hidden="true" />
+                  音声を再生
+                </button>
               ) : null}
 
               {latestReply && !busy ? (
