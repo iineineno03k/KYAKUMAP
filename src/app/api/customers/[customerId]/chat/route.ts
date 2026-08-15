@@ -1,6 +1,5 @@
-import { generateObject } from "ai";
 import { z } from "zod";
-import { MODELS, orca } from "@/lib/orca";
+import { MODELS, orcaFetch } from "@/lib/orca";
 import { groundedCustomerReplyPrompt } from "@/lib/prompts";
 import { clip, logTurn } from "@/lib/telemetry";
 import { getCustomerAiContext } from "@/server/customer-ai/context";
@@ -30,6 +29,48 @@ const replySchema = z.object({
   suggestedEntityIds: z.array(z.string()),
 });
 
+const customerAnswerTool = {
+  type: "function",
+  function: {
+    name: "return_customer_answer",
+    description: "根拠付き顧客AIの回答を確定する",
+    parameters: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        status: { type: "string", enum: ["known", "partial", "unknown"] },
+        answer: { type: "string" },
+        evidenceIds: { type: "array", items: { type: "string" } },
+        suggestedEntityIds: { type: "array", items: { type: "string" } },
+      },
+      required: ["status", "answer", "evidenceIds", "suggestedEntityIds"],
+    },
+  },
+} as const;
+
+const orcaResponseSchema = z.object({
+  choices: z.array(
+    z.object({
+      message: z.object({
+        tool_calls: z.array(
+          z.object({
+            function: z.object({
+              name: z.string(),
+              arguments: z.string(),
+            }),
+          }),
+        ),
+      }),
+    }),
+  ),
+  usage: z
+    .object({
+      prompt_tokens: z.number().optional(),
+      completion_tokens: z.number().optional(),
+    })
+    .optional(),
+});
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ customerId: string }> },
@@ -44,29 +85,44 @@ export async function POST(
 
   const startedAt = Date.now();
   try {
-    const result = await generateObject({
-      model: orca(MODELS.customerChat),
-      schema: replySchema,
-      prompt: groundedCustomerReplyPrompt(context.promptContext),
-      temperature: 0.35,
-      ...(parsed.data.sessionId
-        ? { headers: { "X-OrcaRouter-Session-Id": parsed.data.sessionId } }
-        : {}),
+    const response = await orcaFetch("/chat/completions", {
+      method: "POST",
+      headers: parsed.data.sessionId
+        ? { "X-OrcaRouter-Session-Id": parsed.data.sessionId }
+        : undefined,
+      body: JSON.stringify({
+        model: MODELS.customerChat,
+        messages: [{ role: "user", content: groundedCustomerReplyPrompt(context.promptContext) }],
+        tools: [customerAnswerTool],
+        tool_choice: {
+          type: "function",
+          function: { name: customerAnswerTool.function.name },
+        },
+        temperature: 0.35,
+      }),
     });
+    const responseBody = await response.text();
+    if (!response.ok) {
+      throw new Error(`OrcaRouter ${response.status}: ${responseBody.slice(0, 500)}`);
+    }
+    const orcaResponse = orcaResponseSchema.parse(JSON.parse(responseBody));
+    const toolCall = orcaResponse.choices[0]?.message.tool_calls.find(
+      (item) => item.function.name === customerAnswerTool.function.name,
+    );
+    if (!toolCall) throw new Error("OrcaRouterが回答ツールを呼び出しませんでした");
+    const result = replySchema.parse(JSON.parse(toolCall.function.arguments));
     const validEvidence = new Map(context.evidence.map((item) => [item.evidenceId, item]));
     const validHolders = new Map(context.informationHolders.map((item) => [item.entityId, item]));
-    const selectedEvidence = [...new Set(result.object.evidenceIds)].slice(0, 5).flatMap((id) => {
+    const selectedEvidence = [...new Set(result.evidenceIds)].slice(0, 5).flatMap((id) => {
       const item = validEvidence.get(id);
       return item ? [item] : [];
     });
-    let selectedPeople = [...new Set(result.object.suggestedEntityIds)]
-      .slice(0, 4)
-      .flatMap((id) => {
-        const item = validHolders.get(id);
-        return item ? [item] : [];
-      });
-    const unsupported = result.object.status !== "unknown" && selectedEvidence.length === 0;
-    const status = unsupported ? "unknown" : result.object.status;
+    let selectedPeople = [...new Set(result.suggestedEntityIds)].slice(0, 4).flatMap((id) => {
+      const item = validHolders.get(id);
+      return item ? [item] : [];
+    });
+    const unsupported = result.status !== "unknown" && selectedEvidence.length === 0;
+    const status = unsupported ? "unknown" : result.status;
     if (status === "unknown" && selectedPeople.length === 0) {
       // 情報不足時は会話を行き止まりにしない。近傍グラフに候補がある場合、
       // 遷移可能な顧客1人と、社内の情報保持者1人を優先して返す。
@@ -78,17 +134,15 @@ export async function POST(
     }
     const answer = unsupported
       ? `そのことは、今ある${context.firstPerson}の情報ではまだ分からないな。`
-      : result.object.answer.trim().slice(0, 500);
+      : result.answer.trim().slice(0, 500);
 
-    const usage = result.usage;
-    const response = result.response;
     await logTurn({
       kind: "chat",
       ms: Date.now() - startedAt,
       model: MODELS.customerChat,
-      resolvedModel: response.headers?.["x-orca-resolved-model"] ?? response.modelId,
-      promptTokens: usage.inputTokens,
-      completionTokens: usage.outputTokens,
+      resolvedModel: response.headers.get("x-orca-resolved-model") ?? MODELS.customerChat,
+      promptTokens: orcaResponse.usage?.prompt_tokens,
+      completionTokens: orcaResponse.usage?.completion_tokens,
       sessionId: parsed.data.sessionId,
       input: clip(parsed.data.messages.at(-1)?.text),
       output: clip(answer),

@@ -44,7 +44,7 @@ npm run sync:notion -- --limit 1
 
 ## 環境変数
 
-`ORCAROUTER_API_KEY`、`ORCAROUTER_KNOWLEDGE_MODEL`、`DATABASE_URL`。Notion同期には`NOTION_API_TOKEN`と`NOTION_DATA_SOURCE_ID`を追加する。
+`ORCAROUTER_API_KEY`、`ORCAROUTER_KNOWLEDGE_MODEL`、`ORCAROUTER_CUSTOMER_CHAT_MODEL`、`DATABASE_URL`。Notion同期には`NOTION_API_TOKEN`と`NOTION_DATA_SOURCE_ID`を追加する。記録AIの既定値は`orcarouter/auto`、知識抽出の既定値は`anthropic/claude-haiku-4.5`。
 
 ## 実測した OrcaRouter の挙動
 
@@ -59,6 +59,8 @@ npm run sync:notion -- --limit 1
 - `input_audio` は本番の商談ループでは使わない。音声入力はブラウザ標準認識、顧客AIの読み上げだけを `/audio/speech` に分離する
 - `/v1/dashboard/billing/usage` は `{"object":"list","total_usage":...}` を返します。**単位はセント**で、**ワークスペース単位の累計**です。APIキー別・リクエスト別ではありません
 - `orcarouter/sales-customer-adaptive`の過去14件では平均2.70秒。ただし廃止済みpromptの結果であり、現行品質の根拠には使わない（2026-08-13実測）
+- 現行の根拠付き記録AIで`orcarouter/auto`を使う場合、`response_format`による構造化出力では2件とも`Invalid JSON response`になった。Anthropicを含むプロバイダ横断の構造化回答は、OrcaRouter公式仕様に合わせてTool Callingへ変更した（2026-08-15）
+- Tool Callingへ変更後の固定2問は両方成功した。既知質問は`openai/gpt-5-nano-2025-08-07`へ解決され7.4秒・0.060225セント、未知質問は`google/gemini-2.5-pro`へ解決され12.5秒・2.1985セント。2件合計2.258725セント（公開単価とusageから算出、課金累計差2.2588セントと一致。2026-08-15）
 
 ---
 

@@ -29,7 +29,7 @@ KYAKUMAPは、社内に散らばる記録を顧客・関係者・判断材料へ
 1. `source_documents`: Notion等から取得した原本SSoT
 2. `knowledge_entities / claims / relations / evidence_links`: 根拠付き知識グラフ
 3. `customer_profiles / customer_panels / next_moves`: 営業準備UIへの投影
-4. `POST /api/customers/:customerId/chat`: 顧客近傍を取得し、OrcaRouterで人物らしい回答を構造化生成
+4. `POST /api/customers/:customerId/chat`: 顧客近傍を取得し、OrcaRouter Auto Router＋Tool Callingで人物らしい回答を構造化生成
 5. `POST /api/speech`: 回答を人物設定の声で読み上げる
 
 Notionの取り込みは手動CLIで一気通貫に実行できる。
@@ -43,6 +43,8 @@ npm run sync:notion -- --limit 1
 各情報領域は`panel_item_definitions`の5小項目へ分かれ、顧客別状態は`customer_panel_items`に持つ。領域別と全体の情報充足度は小項目の重み付き充足率。佐藤カードは15/25で全体60%、内訳は基本情報100%、課題80%、キーパーソン40%、意思決定40%、懸念40%。
 
 事実をLLMへ作らせない。LLMが返したevidenceId/entityIdはDB由来の許可リストで検証し、リンクURLはサーバーが生成する。根拠なしknown回答はunknownへ降格する。
+
+記録AIの既定モデルは`orcarouter/auto`。Auto RouterはAnthropicを含む複数プロバイダへ解決され得るため、`generateObject`の`response_format`ではなく、プロバイダ横断で変換されるTool Callingを必須指定して構造化回答を受け取る。知識抽出は引き続き`anthropic/claude-haiku-4.5`固定。
 
 ## 重要ファイル
 
