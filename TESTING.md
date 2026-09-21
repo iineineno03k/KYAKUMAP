@@ -39,4 +39,18 @@
 - 解決モデル: `deepseek-v4-flash-ga-260731`
 - TTSは無料モデルを使用せず、`ORCAROUTER_TTS_MODEL=browser`でWeb Speech APIへフォールバック
 
+## Production QA（2026-09-21）
+
+- URL: `https://teamy-sales-prep.vercel.app`
+- Vercel production deploy成功
+- Playwright MCP `@playwright/mcp 0.0.52`をheadless Chromeで使用
+- `/customers`: title、見出し、顧客カード8件を確認
+- desktop 1440x900: 横スクロールなし
+- mobile 375x812: `clientWidth = scrollWidth = 375`、横スクロールなし
+- 既知質問: 「趣味は何ですか？」→海釣り、根拠「みなと食品 初回訪問」と原文引用をUIで確認
+- 未知質問: 「お父さんの会社はどんな会社？」→情報不足を明示し、山本隆を候補表示
+- `/api/customers/person-sato/chat`: 固定2問ともHTTP 200
+- 最終確認時のconsole warning/errorなし。AI質問経路の失敗requestなし
+- mobile全画面と顧客AI回答画面のスクリーンショットをPlaywright MCPで取得して確認
+
 実行前に`npm run logs`を読み、同じケースが記録済みなら再実行しない。TTSも回答ごとに課金されるため総当たりしない。
