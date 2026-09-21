@@ -44,7 +44,7 @@ type Reply = {
   answer: string;
   evidence: Evidence[];
   suggestedPeople: SuggestedPerson[];
-  speech: { voice: string; delivery: string };
+  speech: { voice: string; delivery: string; mode: "browser" | "api" };
 };
 
 function id() {
@@ -183,6 +183,10 @@ export function CustomerAiChat({
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utterance);
     };
+    if (reply.speech.mode === "browser") {
+      speakInBrowser();
+      return;
+    }
     const response = await fetch("/api/speech", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

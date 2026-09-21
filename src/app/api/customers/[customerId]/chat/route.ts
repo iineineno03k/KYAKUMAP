@@ -154,7 +154,11 @@ export async function POST(
       answer,
       evidence: selectedEvidence,
       suggestedPeople: selectedPeople,
-      speech: { voice: context.voice, delivery: context.speechDelivery },
+      speech: {
+        voice: context.voice,
+        delivery: context.speechDelivery,
+        mode: MODELS.tts === "browser" ? "browser" : "api",
+      },
     });
   } catch (error) {
     await logTurn({
