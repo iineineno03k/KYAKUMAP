@@ -162,6 +162,27 @@ export function CustomerAiChat({
         revealReply();
       };
     })();
+    const speakInBrowser = () => {
+      if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
+        revealOnce();
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(reply.answer);
+      utterance.lang = "ja-JP";
+      utterance.rate = 0.95;
+      utterance.onstart = () => {
+        revealOnce();
+        setSpeaking(true);
+      };
+      const finish = () => setSpeaking(false);
+      utterance.onend = finish;
+      utterance.onerror = () => {
+        revealOnce();
+        finish();
+      };
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    };
     const response = await fetch("/api/speech", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -172,8 +193,15 @@ export function CustomerAiChat({
       }),
     });
     if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as {
+        error?: string;
+        fallback?: string;
+      } | null;
+      if (body?.fallback === "browser") {
+        speakInBrowser();
+        return;
+      }
       revealOnce();
-      const body = (await response.json().catch(() => null)) as { error?: string } | null;
       throw new Error(body?.error ?? "音声を作れませんでした。回答は文字で表示しています。");
     }
     const url = URL.createObjectURL(await response.blob());

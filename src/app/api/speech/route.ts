@@ -28,6 +28,12 @@ export async function POST(request: Request) {
   if (text.length > 500) {
     return Response.json({ error: "読み上げる文章が長すぎます" }, { status: 400 });
   }
+  if (MODELS.tts === "browser") {
+    return Response.json(
+      { error: "ブラウザの音声合成を使用してください", fallback: "browser" },
+      { status: 503 },
+    );
+  }
 
   const startedAt = Date.now();
   const controller = new AbortController();

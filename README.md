@@ -44,7 +44,17 @@ npm run sync:notion -- --limit 1
 
 ## 環境変数
 
-`ORCAROUTER_API_KEY`、`ORCAROUTER_KNOWLEDGE_MODEL`、`ORCAROUTER_CUSTOMER_CHAT_MODEL`、`DATABASE_URL`。Notion同期には`NOTION_API_TOKEN`と`NOTION_DATA_SOURCE_ID`を追加する。記録AIと知識抽出の既定値はどちらも`orcarouter/auto`。
+`ORCAROUTER_API_KEY`、`ORCAROUTER_KNOWLEDGE_MODEL`、`ORCAROUTER_CUSTOMER_CHAT_MODEL`、`DATABASE_URL`。Notion同期には`NOTION_API_TOKEN`と`NOTION_DATA_SOURCE_ID`を追加する。
+
+記録AIと知識抽出の既定値は`deepseek/deepseek-v4-flash-free`。無料モデルは入れ替わるため、起動前に現在のcatalogと最小応答を確認する。
+
+```bash
+npm run probe:free
+```
+
+無料枠はbest-effortで、rate limit・日次上限・prompt上限がある。`err_free_access_denied`の場合は、OrcaRouterのworkspace ownerが一定期間利用しているGitHubアカウントをプロフィールで連携する必要がある。無料モデルから有料モデルへは自動fallbackしない。
+
+無料のTTSモデルは使わず、`ORCAROUTER_TTS_MODEL=browser`ではブラウザ標準の日本語音声合成へフォールバックする。
 
 ## 実測した OrcaRouter の挙動
 
@@ -63,6 +73,9 @@ npm run sync:notion -- --limit 1
 - Tool Callingへ変更後の固定2問は両方成功した。既知質問は`openai/gpt-5-nano-2025-08-07`へ解決され7.4秒・0.060225セント、未知質問は`google/gemini-2.5-pro`へ解決され12.5秒・2.1985セント。2件合計2.258725セント（公開単価とusageから算出、課金累計差2.2588セントと一致。2026-08-15）
 - 知識抽出もTool Calling経由の`orcarouter/auto`へ変更し、Notion原文から人物・事実・関係を抽出して知識テーブルへ保存できることを確認した。検証時は`grok/grok-4.5`へ解決された（2026-08-15）
 - `KYAKUMAP Security Guardrail`を使用中のAPIキーへ明示的に紐付けた。入力のメール・電話・IPはマスクし、クレジットカード・SSN・マイナンバー・OpenAI APIキー・AWSアクセスキー・JWTはブロックする。OrcaRouterキーはカスタムRE2でマスクし、マッチ原文ログはOFF。架空メールは`[EMAIL]`、架空OrcaRouterキーは`[ORCAROUTER_API_KEY]`へ置換され、架空SSNはモデル呼び出し前にHTTP 400 `guardrail_blocked`となりusageなしだった（2026-08-15）
+- 2026-09-21時点で`deepseek/deepseek-v4-flash-free`は公開catalogに存在し、`pricing.request`は`0.000000`
+- 同日、`npm run probe:free`のJSON応答、既知質問「趣味は何ですか？」、未知質問「お父さんの会社はどんな会社？」を実APIで確認。解決モデルは`deepseek-v4-flash-ga-260731`、既知は根拠1件、未知は根拠0件・情報保持者候補1人で200を返した
+- freeモデルでも既存のTool Callingによる構造化回答を維持できることを実測した。有料TTSの代わりにブラウザ標準音声へフォールバックする
 
 ---
 
